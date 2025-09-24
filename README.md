@@ -80,43 +80,144 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
+
+![Q1 Image](./questionOutput1.png)
 ```
 
 
 2. Write a program that opens a file (with the `open()` system call) and then calls `fork()` to create a new process. Can both the child and parent access the file descriptor returned by `open()`? What happens when they are writing to the file concurrently, i.e., at the same time?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
+// Both processes can access the file & write to it at the same time. What gets written is determined by which process makes the api call first for each access. If example the parent made 1 call then had a timer the kid could write before the parent then the parent could write again.
+
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("q2.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    int rc = fork();
+    if (rc == 0) {
+        for (int i = 0; i < 5; i++) dprintf(fd, "Child %d\n", i);
+        _exit(0);
+    } else {
+        for (int i = 0; i < 5; i++) dprintf(fd, "Parent %d\n", i);
+    }
+    return 0;
+}
 ```
 
 3. Write another program using `fork()`.The child process should print “hello”; the parent process should print “goodbye”. You should try to ensure that the child process always prints first; can you do this without calling `wait()` in the parent?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
+// In this code I use pipe to pass a variagle for when to print goodbye.
+
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    int p[2];
+    pipe(p);
+    int rc = fork();
+    if (rc == 0) {
+        close(p[0]);
+        printf("Hello\n");
+        write(p[1], "x", 1);
+        _exit(0);
+    } else {
+        close(p[1]);
+        char c;
+        read(p[0], &c, 1);
+        printf("Goodbye\n");
+    }
+    return 0;
+}
+
+![Q3 Image](./questionOutput3.png)
 ```
 
 
 4. Write a program that calls `fork()` and then calls some form of `exec()` to run the program `/bin/ls`. See if you can try all of the variants of `exec()`, including (on Linux) `execl()`, `execle()`, `execlp()`, `execv()`, `execvp()`, and `execvpe()`. Why do you think there are so many variants of the same basic call?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
+// There are so many diffrent varients as they pass diffrent data to what is being launched.
+
+#include <unistd.h>
+int main() {
+    if (fork() == 0) execl("/bin/ls", "ls", "-l", (char*)0); 
+    return 0; 
+}
 ```
 
 5. Now write a program that uses `wait()` to wait for the child process to finish in the parent. What does `wait()` return? What happens if you use `wait()` in the child?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
+// The parent gets back there exit code & the kid gets back -1.
+
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+int main() {
+    int rc = fork();
+    if (rc == 0) {
+        int st;
+	int w = wait(&st);
+        printf("Child final words %d\n", w);
+        _exit(25);
+    } else {
+        int st;
+	int w = wait(&st);
+        printf("Parent found body %d with code %d\n", w, WEXITSTATUS(st));
+    }
+    return 0;
+}
 ```
 
 6. Write a slight modification of the previous program, this time using `waitpid()` instead of `wait()`. When would `waitpid()` be useful?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
+// In my example I just use waitpid() without really making use of it. It is useful if there are multiple kids & you want to select which one to wait on.
+
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+int main() {
+    pid_t c = fork();
+    if (c == 0) {
+        int st; 
+	int w = wait(&st);
+        printf("Child final words %d\n", w);
+        _exit(25);
+    } else {
+        int st; 
+	int w = waitpid(c, &st, 0);
+        printf("Parent found body %d with code %d\n", w, WEXITSTATUS(st));
+    }
+    return 0;
+}
 ```
 
 7. Write a program that creates a child process, and then in the child closes standard output (`STDOUT FILENO`). What happens if the child calls `printf()` to print some output after closing the descriptor?
 
 ```cpp
-// Add your code or answer here. You can also add screenshots showing your program's execution.  
-```
+// Nothing it output in CMD or in the file.
 
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main() {
+    if (fork() == 0) {
+        close(1);
+        printf("test \n");
+        open("q7.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        printf("testING\n");
+        _exit(0);
+    }
+    return 0;
+}
+
+![Q7 Image](./questionOutput7.png)
+```
