@@ -80,10 +80,8 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
-
-![Q1 Image](./questionOutput1.png)
 ```
-
+![Q1 Image](./questionOutput1.png)
 
 2. Write a program that opens a file (with the `open()` system call) and then calls `fork()` to create a new process. Can both the child and parent access the file descriptor returned by `open()`? What happens when they are writing to the file concurrently, i.e., at the same time?
 
@@ -132,10 +130,8 @@ int main() {
     }
     return 0;
 }
-
-![Q3 Image](./questionOutput3.png)
 ```
-
+![Q3 Image](./questionOutput3.png)
 
 4. Write a program that calls `fork()` and then calls some form of `exec()` to run the program `/bin/ls`. See if you can try all of the variants of `exec()`, including (on Linux) `execl()`, `execle()`, `execlp()`, `execv()`, `execvp()`, and `execvpe()`. Why do you think there are so many variants of the same basic call?
 
@@ -218,6 +214,5 @@ int main() {
     }
     return 0;
 }
-
-![Q7 Image](./questionOutput7.png)
 ```
+![Q7 Image](./questionOutput7.png)
